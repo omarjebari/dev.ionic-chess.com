@@ -32,6 +32,9 @@
     <ion-content ng-controller="google">
         <br/><br/><br/><br/>
         <div style="width: 100%;text-align: center">
+
+            <!-- When 'Login Via Google' button is clicked, call starter(app)->google(controller)->login(function)  -->
+
             <button ng-click="login();" class="button">
                 Login Via Google
             </button>
@@ -42,5 +45,21 @@
         </div>
     </ion-content>
 </ion-pane>
+
+<!--
+<ion-pane>
+    <ion-header-bar class="bar-stable">
+        <h1 class="title">My Games</h1>
+    </ion-header-bar>
+    <ion-content ng-controller="games">
+
+        <pre>
+            {{game_data|json}}
+        </pre>
+
+    </ion-content>
+</ion-pane>
+-->
+
 </body>
 </html>

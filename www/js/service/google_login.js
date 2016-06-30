@@ -1,4 +1,6 @@
 var googleLoginService = angular.module('GoogleLoginService', ['ngStorage']);
+
+// Create a service using the factory method
 googleLoginService.factory('timeStorage', ['$localStorage', function ($localStorage) {
         var timeStorage = {};
         timeStorage.cleanUp = function () {
@@ -47,9 +49,17 @@ googleLoginService.factory('timeStorage', ['$localStorage', function ($localStor
     }]);
 
 
+/**
+ * Note that $q (below) is a service that helps you run functions asynchronously,
+ * and use their return values (or exceptions) when they are done processing
+ */
+// Create a service using the factory method
 googleLoginService.factory('googleLogin', [
     '$http', '$q', '$interval', '$log', 'timeStorage',
     function ($http, $q, $interval, $log, timeStorage) {
+
+        var currentUser = null;
+
         var service = {};
         service.access_token = false;
 
@@ -59,7 +69,7 @@ googleLoginService.factory('googleLogin', [
 
         service.redirect_url = 'http://dev.ionic-chess.com/oauth2callback';
         service.client_id = '106299031547-13ena15mjccjsj7la1vm437a4fpqd236.apps.googleusercontent.com';
-        service.secret = 'LJ0jwYByZJt_e_GmQHNRHaK7';
+        service.secret = 'iC8m9qdrZIQ_CbekcMNsQumT';
 
         service.scope = 'https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/plus.me';
         service.gulp = function (url, name) {
@@ -99,26 +109,38 @@ googleLoginService.factory('googleLogin', [
             var def = $q.defer();
             var self = this;
 
+console.log('AUTHORSING');
+
             var access_token = timeStorage.get('google_access_token');
             if (access_token) {
+
                 $log.info('Direct Access Token :' + access_token);
+
+                console.log('Direct Access Token Exists:' + access_token);
 
 
                 // Load a base view if havent got one already loaded!
+                // Note that the views (inc the one currently being loaded) should come from node client.js
+
+
+                // NOTE THAT BELOW DOES NOT GET CALLED UNTIL WE MAKE A REQUEST WITH THE TOKEN, IE NOT WHEN THE
+                // 'ELSE' STATEMENT GETS EXECUTED (THE SCENARIO WHERE IT LOGS THE USER IN WITH GOOGLE)
 
                 // Inform the server of the new access token so that it can validate it vs google and store
                 // it vs the new/existing user account
+                service.authNotifyServer(access_token, def);
 
-                // service.authNotifyServer()
                 // Essentially you just want to do the service.getUserInfo(access_token) call below on the serverside!
 
 
 
 
-                service.getUserInfo(access_token, def);
+                //service.getUserInfo(access_token, def);
 
 
             } else {
+
+                console.log('No token so getting one');
 
                 var params = 'client_id=' + encodeURIComponent(options.client_id);
                 params += '&redirect_uri=' + encodeURIComponent(options.redirect_uri);
@@ -195,6 +217,9 @@ googleLoginService.factory('googleLogin', [
                 var access_token = data.data.access_token;
                 var expires_in = data.data.expires_in;
                 expires_in = expires_in * 1 / (60 * 60);
+
+                $log.info('Expires In:' + expires_in);
+
                 timeStorage.set('google_access_token', access_token, expires_in);
                 if (access_token) {
                     $log.info('Access Token :' + access_token);
@@ -204,6 +229,10 @@ googleLoginService.factory('googleLogin', [
                 }
             });
         };
+
+
+        // @todo Dont need these next two calls as they query google directly
+        /*
         service.getUserInfo = function (access_token, def) {
             var http = $http({
                 url: 'https://www.googleapis.com/oauth2/v3/userinfo',
@@ -223,6 +252,7 @@ googleLoginService.factory('googleLogin', [
                     picture: user_data.picture,
                     profile: user_data.profile
                 };
+                // Return the user object to the getUserInfo call
                 def.resolve(user);
             });
         };
@@ -239,6 +269,8 @@ googleLoginService.factory('googleLogin', [
                 console.log(data);
             });
         };
+        */
+
         service.startLogin = function () {
             var def = $q.defer();
             var promise = this.authorize({
@@ -255,6 +287,152 @@ googleLoginService.factory('googleLogin', [
             });
             return def.promise;
         };
+
+
+
+
+
+        // CUSTOM FUNCTION BELOW
+        // Inform the server of the new access token so that it can validate it vs google and store
+        // it vs the new/existing user account
+        /*
+        service.authNotifyServer = function (access_token, def) {
+
+            console.log('CALLING SERVER');
+
+            var http = $http({
+
+
+                // Call node here and on return process error/success
+
+
+                //url: 'https://www.googleapis.com/oauth2/v3/userinfo',
+
+                url: 'http://localhost:3000/authenticate',
+                method: 'POST',
+                params: {
+                    access_token: access_token
+                }
+            });
+            http.then(function (data) {
+                $log.debug(data);
+                def.resolve(data);
+
+                //var user_data = data.data;
+                //var user = {
+                //    name: user_data.name,
+                //    gender: user_data.gender,
+                //    email: user_data.email,
+                //    google_id: user_data.sub,
+                //    picture: user_data.picture,
+                //    profile: user_data.profile
+                //};
+                //def.resolve(user);
+
+            });
+        };*/
+
+
+
+
+        service.authNotifyServer = function (access_token, def) {
+            console.log('CALLING SERVER TO AUTHENTICATE');
+            var http = $http({
+                url: 'http://localhost:3000/authenticate',
+                method: 'POST',
+                params: {
+                    access_token: access_token
+                }
+            });
+
+
+            // TEST THAT THIS WORKS THEN CONTINUE WITH INSTRUCTIONS BELOW
+
+            // For success retrieve the user's games (node call) and a template (angular js) and display the list on screen
+            // For failure show a message. remove the token from the clientside and display the login screen
+
+
+
+            http.then(function (data) {
+                $log.debug(data);
+
+
+                // DECLARE THE VAR BELOW SOMEWHERE!!
+
+                // Set the currenUser in the scope so universally available
+                currentUser = data.data;
+
+
+                console.log('CALLING service.getGames');
+
+
+                // PUT STUFF BELOW INTO FUNCTIONS
+
+                // Retrieve the user's games
+                service.getGames(access_token, def);
+
+
+                // Get the template to display the games
+                // Populate the template with the games
+
+
+                // **** NOTE: I think the getGames service needs to be all hooked up to controllers then does
+                // all the population automatically - see the ionic documentation
+
+
+
+                def.resolve(data);
+            }, function (data) {
+                $log.error(data);
+                def.reject(data.error);
+            });
+            return def.promise;
+        };
+
+
+        service.getGames = function (def) {
+            //var def = $q.defer();
+
+            console.log('CALLING SERVER TO GET GAMES');
+            var http = $http({
+                url: 'http://localhost:3000/api/games',
+                method: 'GET',
+                params: {
+                    access_token: this.access_token
+                }
+            });
+
+            // Need error handler too
+
+            http.then(function (data) {
+                console.log('Games List:');
+                console.log(data);
+
+                // Get the games list template
+
+
+                // NEED TO WORK OUT HOW TO DO THE IONIC ROUTING AND TEMPLATING!!
+
+                // @todo: NEXT see http://www.metaltoad.com/blog/angularjs-promises-from-service-to-template for how to
+                // get the promise/template/date stuff working prperly
+
+
+
+
+                def.resolve(data);
+            }, function (data) {
+                $log.error(data);
+                def.reject(data.error);
+            });
+            return def.promise;
+        };
+
+
+
+
+
+
+
         return service;
     }
 ]);

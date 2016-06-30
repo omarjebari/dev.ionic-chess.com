@@ -1,0 +1,115 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1348\cocoasubrtf170
+{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;\red59\green59\blue59;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww10800\viewh8400\viewkind0
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural
+
+\f0\fs24 \cf0 - got a backend checked out which planning on running as a node server so no need for hosts file stuff\
+- check that it works then get the fronted stuff working as well, will need to merge this in to the ionicChess stuff\
+- the aim above is to separate backend and fronted so fronted calls backend as a separate api\
+\
+\
+\
+*** REM TO START THE NODE SCRIPT!!\
+Got google auth working with ionic in dev.ionic-chess.com (login as chess.carlsen with google)\
+\
+\
+\
+===> CURRENTLY GOT IT CREATING A USER AND MATCHING AN EXISTING USER, NEXT NEED TO GO THRU TO MAKE SURE THE LOGIC MAKE SENSE (e.g. do i need to update the user\'92s token or not?). THEN HOOKUP A CALL FOR LOGGED IN USERS ONLY AND ENSURE THAT IT WORKS SO NOT CONSTANTLY LOGGING IN. THEN ADD LOGOUT (WILL BE FOR WEB ONLY PROBABLY). ALSO TRY PLAYING WITH THE TIMEOUT - DO WE WANT THE TOKEN TO LAST FOREVER ON MOBILE IF NOT THEN IS REFRESHING HAPPENING and need to get this stored vs the user in db?? GOOGLE THIS)\
+\
+\'97> May be best to have angular handle requests for templates (doesn\'92t matter whether auth\'92d for this) and just use node for data requests (i.e. to populate the templates). Then continue with the instructions in the notes below.\
+\
+NOTES\
+\'97\'97\'97\'97\
+X once a user has logged in on the client side it should then send the token to the server side (can maybe see if there is an event listener already being used which we can hook in to).\
+- server side makes a request to get the user details from google (i.e. kinda re-validates the token) and if ok it then checks to  see if the user exists in the db and if not it creates the user and stores the token against their user account. If the user does already exist then it just updates the token.\
+- if invalid response from google then it should return an error and the client side should bump the user to login (see how it\'92s currently implemented if at all)\
+- if a token comes in to the server side that matches the user\'92s in the db then return the content that the user has requested.\
+- if it doesn\'92t match then attempt to revalidate this new token. If successful overwrite the token in storage and continue else send an error and the client side should bump the user to login\
+- note that the token expiry is set on the client side so at some point this should expire and a new one will get generated. As explained above we will re-validate this token to work out who the user is.\
+REM: This is a mobile app so as long as using https it should be difficult to hack the code as no browser tools. If you do a web version of this then will need to be a bit careful whether it\'92s safe or not to allow the clientID and secret in the fronted js. Plus remove the console and $log calls from the frontend code as this is printing everything out to the inspector.\
+\
+These resources help with understanding how ionic/angular can be used together wrt views/controllers etc:\
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural
+{\field{\*\fldinst{HYPERLINK "http://ionicframework.com/docs/concepts/structure.html"}}{\fldrslt \cf0 http://ionicframework.com/docs/concepts/structure.html}}\
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural
+{\field{\*\fldinst{HYPERLINK "http://mcgivery.com/controllers-ionicangular/"}}{\fldrslt \cf0 http://mcgivery.com/controllers-ionicangular/}}\
+{\field{\*\fldinst{HYPERLINK "https://scotch.io/tutorials/angular-routing-using-ui-router"}}{\fldrslt https://scotch.io/tutorials/angular-routing-using-ui-router}}\
+{\field{\*\fldinst{HYPERLINK "https://thinkster.io/ionic-framework-tutorial"}}{\fldrslt https://thinkster.io/ionic-framework-tutorial}}\
+\
+Ionic has the angular-ui router built-in so should be able to use .state()!!\
+\
+\
+===>\
+DnB\
+\'97\'97\
+Dusty Fingers -Spy\
+Waves Breaking - Urban Dawn Remix\
+Ammunition (feat Inja) - Logistics\
+\pard\pardeftab720\sl460
+
+\fs30 \cf2 \expnd0\expndtw0\kerning0
+Royalston \'91The Wrath Of Mr Sparkles\'92\
+Logistics \'91Cocoon\'92\
+
+\fs24 \cf0 \kerning1\expnd0\expndtw0 \
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural
+\cf0 see notes in server.js!\
+\
+OPEN THESE:\
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural
+{\field{\*\fldinst{HYPERLINK "https://docs.angularjs.org/guide/module"}}{\fldrslt \cf0 https://docs.angularjs.org/guide/module}}\
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural
+{\field{\*\fldinst{HYPERLINK "https://thinkster.io/ionic-framework-tutorial"}}{\fldrslt \cf0 https://thinkster.io/ionic-framework-tutorial}}\
+{\field{\*\fldinst{HYPERLINK "https://scotch.io/tutorials/angular-routing-using-ui-router"}}{\fldrslt https://scotch.io/tutorials/angular-routing-using-ui-router}}\
+{\field{\*\fldinst{HYPERLINK "http://mcgivery.com/controllers-ionicangular/"}}{\fldrslt http://mcgivery.com/controllers-ionicangular/}}\
+\
+AND THE THREE BELOW AND FOCUS ON THOSE FIRST\
+\
+NEED TO USE SOCKET.IO TO BE ABLE TO COMMUNICATE WITH SPECIFIC DEVICE \'85 SEE\
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural
+{\field{\*\fldinst{HYPERLINK "http://socket.io/docs/"}}{\fldrslt \cf0 http://socket.io/docs/}} for how to add the socket stuff to node js\
+\
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural
+{\field{\*\fldinst{HYPERLINK "http://melvin0008.github.io/blog/ionic-socketio-chat/"}}{\fldrslt \cf0 http://melvin0008.github.io/blog/ionic-socketio-chat/}}  (only get the integration with login from here, as this is only broadcasting to all users instead of direct comms to specifc user)\
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural
+{\field{\*\fldinst{HYPERLINK "http://socket.io/get-started/chat/"}}{\fldrslt \cf0 http://michaelheap.com/sending-messages-to-certain-clients-with-socket-io/}} (direct comms to specific user) and for the latest documentation, see {\field{\*\fldinst{HYPERLINK "http://socket.io/docs/rooms-and-namespaces/#rooms"}}{\fldrslt http://socket.io/docs/rooms-and-namespaces/#rooms}}\
+\
+SETUP A NEW APP TO SEE HOW THE ROUTING/TEMPLATE WORKS THEN IMPLEMENT IT IN THIS PROJECT!!\
+\
+\
+\
+\
+\
+\
+If you have trouble with node then could look to use this, but will need to find where it does authentication:\
+{\field{\*\fldinst{HYPERLINK "http://docs.ionic.io/docs/push-from-scratch"}}{\fldrslt http://docs.ionic.io/docs/push-from-scratch}}\
+\
+Read these all first and choose which you think will be easier to implement:\
+{\field{\*\fldinst{HYPERLINK "http://excellencenodejsblog.com/cordova-ionic-google-oauth-login-for-your-mobile-app/"}}{\fldrslt http://excellencenodejsblog.com/cordova-ionic-google-oauth-login-for-your-mobile-app/}}\
+\
+{\field{\*\fldinst{HYPERLINK "https://www.airpair.com/ionic-framework/posts/push-notifications-using-ionic-framework"}}{\fldrslt https://www.airpair.com/ionic-framework/posts/push-notifications-using-ionic-framework}}\
+{\field{\*\fldinst{HYPERLINK "https://github.com/sean-hill/ionic-user-auth-express"}}{\fldrslt https://github.com/sean-hill/ionic-user-auth-express}}\
+Good overall tutorial: {\field{\*\fldinst{HYPERLINK "https://thinkster.io/ionic-framework-tutorial"}}{\fldrslt https://thinkster.io/ionic-framework-tutorial}}\
+This is good but not web tokens: {\field{\*\fldinst{HYPERLINK "http://miamicoder.com/2014/using-mongodb-and-mongoose-for-user-registration-login-and-logout-in-a-mobile-application/"}}{\fldrslt http://miamicoder.com/2014/using-mongodb-and-mongoose-for-user-registration-login-and-logout-in-a-mobile-application/}}\
+\
+Test Email Account\
+\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\'97\
+chess.carlsen@gmail.com\
+test1973\
+\
+\
+\
+\
+see\
+{\field{\*\fldinst{HYPERLINK "http://code.tutsplus.com/tutorials/token-based-authentication-with-angularjs-nodejs--cms-22543"}}{\fldrslt http://code.tutsplus.com/tutorials/token-based-authentication-with-angularjs-nodejs--cms-22543}}\
+{\field{\*\fldinst{HYPERLINK "https://github.com/huseyinbabal/token-based-auth-backend"}}{\fldrslt https://github.com/huseyinbabal/token-based-auth-backend}}\
+{\field{\*\fldinst{HYPERLINK "https://github.com/huseyinbabal/token-based-auth-frontend"}}{\fldrslt https://github.com/huseyinbabal/token-based-auth-frontend}}\
+\
+\
+- get JWT working with ionicChess codebase\
+- get angular pulling in the chess game as a dependency (in app.js), maybe set it as an injectable service, see {\field{\*\fldinst{HYPERLINK "https://docs.angularjs.org/guide/services"}}{\fldrslt https://docs.angularjs.org/guide/services}}\
+- use resource instead of http to crud a game\
+- (need to get the unit test running)\
+- use a directive to output the board, see example at {\field{\*\fldinst{HYPERLINK "https://docs.angularjs.org/guide/directive"}}{\fldrslt https://docs.angularjs.org/guide/directive}}\
+- modify the way the ajax calls are made, make it angular style}
