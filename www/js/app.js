@@ -4,7 +4,6 @@
 // 'starter' is the name of this angular module example (also set in a <body> attribute in index.html)
 // the 2nd parameter is an array of 'requires'
 angular.module('starter', ['ionic', 'GoogleLoginService'])
-//angular.module('starter', ['ionic', 'GoogleLoginService', 'GameService'])
 
     .run(function ($ionicPlatform) {
         $ionicPlatform.ready(function () {
@@ -25,8 +24,6 @@ angular.module('starter', ['ionic', 'GoogleLoginService'])
 
     // This controller gets bound in index.html
     .controller('google', function ($scope, googleLogin) {
-    //.controller('google', function ($scope, googleLogin, game) {
-
 
             // Define google_data and bind it into the scope (this gets output in index.html)
         $scope.google_data = {};
@@ -43,8 +40,6 @@ angular.module('starter', ['ionic', 'GoogleLoginService'])
                 // @todo: Might be more transparent if call getGames here instead of at the end of startLogin() chain of calls!
                 // googleLogin.access_token
                 //googleLogin.getGames();
-                //game.getGames();
-
 
                 $scope.google_data = data;
             }, function (data) {
